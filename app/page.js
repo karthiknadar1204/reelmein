@@ -12,7 +12,7 @@ export default function Home() {
 
   useEffect(() => {
     if (isLoaded && user) {
-      // Create or update user in our database
+
       createOrUpdateUser({
         name: user.fullName,
         email: user.primaryEmailAddress.emailAddress,
@@ -20,7 +20,7 @@ export default function Home() {
         paymentId: ''
       })
         .then(() => {
-          // Redirect to dashboard after user is created/updated
+
           router.push('/dashboard');
         })
         .catch(console.error);
