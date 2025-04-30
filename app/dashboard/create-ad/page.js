@@ -5,9 +5,35 @@ import { useState } from "react";
 
 export default function CreateAd() {
   const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleGenerateAd = () => {
-    console.log("Input Text:", inputText);
+  const handleGenerateAd = async () => {
+    if (!inputText.trim()) {
+      console.log("Please enter some text");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/generate-script', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ topic: inputText }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      console.log("API Response:", data);
+    } catch (error) {
+      console.error("Error calling API:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -34,10 +60,11 @@ export default function CreateAd() {
             <div className="absolute bottom-4 right-4">
               <button 
                 onClick={handleGenerateAd}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+                disabled={isLoading}
+                className={`flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <Wand2 className="h-5 w-5" />
-                <span className="font-medium">Generate Ad</span>
+                <Wand2 className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
+                <span className="font-medium">{isLoading ? 'Generating...' : 'Generate Ad'}</span>
               </button>
             </div>
           </div>
