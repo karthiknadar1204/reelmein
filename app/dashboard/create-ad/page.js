@@ -2,10 +2,15 @@
 
 import { Wand2 } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import useUserStore from "@/store/userStore";
+import { createVideoData } from "@/app/actions/video";
 
 export default function CreateAd() {
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { userId } = useUserStore();
+  const router = useRouter();
 
   const handleGenerateAd = async () => {
     if (!inputText.trim()) {
@@ -13,60 +18,69 @@ export default function CreateAd() {
       return;
     }
 
+    if (!userId) {
+      console.log("User not authenticated");
+      return;
+    }
+
     setIsLoading(true);
     try {
+
       const response = await fetch('/api/generate-script', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ topic: inputText }),
+        body: JSON.stringify({ 
+          topic: inputText
+        }),
       });
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
 
-      const data = await response.json();
-      console.log("API Response:", data);
+      const scripts = await response.json();
+      console.log("Generated Scripts:", scripts);
+
+
+      const videoId = await createVideoData({
+        topic: inputText,
+        scripts,
+        userId
+      });
+
+      console.log("Video created with ID:", videoId);
+      
+
+      router.push(`/dashboard/create-ad/${videoId}`);
     } catch (error) {
-      console.error("Error calling API:", error);
+      console.error("Error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="w-full max-w-4xl px-4">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-            Create AI Ads in One Click
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Market your product with AI-generated ads effortlessly. No editing skills required - just describe your product and let our AI work its magic.
-          </p>
-        </div>
-
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-6">Create New Ad</h1>
+      <div className="max-w-2xl mx-auto">
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-3xl blur-3xl" />
-          <div className="relative">
-            <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              className="w-full h-64 p-6 text-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-gray-200/50 dark:border-gray-700/50 rounded-3xl focus:ring-2 focus:ring-blue-500/50 focus:border-transparent resize-none"
-              placeholder="Describe your product or service in detail. The more details you provide, the better the AI can create your ad..."
-            />
-            <div className="absolute bottom-4 right-4">
-              <button 
-                onClick={handleGenerateAd}
-                disabled={isLoading}
-                className={`flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <Wand2 className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
-                <span className="font-medium">{isLoading ? 'Generating...' : 'Generate Ad'}</span>
-              </button>
-            </div>
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Enter your ad topic or description..."
+            className="w-full h-64 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <div className="absolute bottom-4 right-4">
+            <button 
+              onClick={handleGenerateAd}
+              disabled={isLoading || !userId}
+              className={`flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl ${(isLoading || !userId) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <Wand2 className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
+              <span className="font-medium">{isLoading ? 'Generating...' : 'Generate Ad'}</span>
+            </button>
           </div>
         </div>
 

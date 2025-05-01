@@ -10,7 +10,7 @@ export async function createOrUpdateUser(userData) {
     const existingUser = await db
       .select()
       .from(users)
-      .where(eq(users.email, userData.email))
+      .where(eq(users.clerkId, userData.clerkId))
       .limit(1);
 
     if (existingUser.length > 0) {
@@ -22,6 +22,7 @@ export async function createOrUpdateUser(userData) {
     const newUser = await db
       .insert(users)
       .values({
+        clerkId: userData.clerkId,
         name: userData.name,
         email: userData.email,
         picture: userData.picture,

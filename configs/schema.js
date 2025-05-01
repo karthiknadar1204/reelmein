@@ -1,7 +1,9 @@
-import { pgTable, text, serial, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
+  clerkId: text("clerk_id").notNull().unique(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   picture: text("picture"),
@@ -10,7 +12,7 @@ export const users = pgTable("users", {
 });
 
 export const videoData = pgTable("videoData", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   topic: text("topic").notNull(),
   scriptVariant: text("scriptVariant").notNull(),
   script: text("script").notNull(false),

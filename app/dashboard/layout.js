@@ -3,16 +3,25 @@
 import { useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import useUserStore from "@/store/userStore";
 
 export default function DashboardLayout({ children }) {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const { setUserId, setUserData } = useUserStore();
 
   useEffect(() => {
     if (isLoaded && !user) {
       router.push('/');
+    } else if (isLoaded && user) {
+      setUserId(user.id);
+      setUserData({
+        name: user.fullName,
+        email: user.primaryEmailAddress?.emailAddress,
+        imageUrl: user.imageUrl
+      });
     }
-  }, [isLoaded, user, router]);
+  }, [isLoaded, user, router, setUserId, setUserData]);
 
   if (!isLoaded || !user) {
     return <div>Loading...</div>;

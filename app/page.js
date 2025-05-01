@@ -12,15 +12,14 @@ export default function Home() {
 
   useEffect(() => {
     if (isLoaded && user) {
-
       createOrUpdateUser({
+        clerkId: user.id,
         name: user.fullName,
         email: user.primaryEmailAddress.emailAddress,
         picture: user.imageUrl,
         paymentId: ''
       })
         .then(() => {
-
           router.push('/dashboard');
         })
         .catch(console.error);
